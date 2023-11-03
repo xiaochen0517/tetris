@@ -37,7 +37,7 @@ static CYAN_CONTENT: [[[u8; 4]; 4]; 4] = [
 
 #[derive(Debug)]
 pub(crate) struct Tiles {
-    color: Color,
+    pub(crate) color: Color,
     pub(crate) content: [[[u8; 4]; 4]; 4],
 }
 

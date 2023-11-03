@@ -2,9 +2,9 @@ use std::io;
 use std::io::Write;
 
 use clap::Parser;
-use crossterm::{cursor, execute};
 use crossterm::style::Color;
 use crossterm::terminal::ClearType;
+use crossterm::{cursor, execute};
 
 mod tetris;
 mod tiles;
@@ -57,7 +57,9 @@ pub fn run() {
     execute!(io::stdout(), crossterm::cursor::MoveTo(0, 20)).unwrap();
     print!("————————————————————————————————————————");
     io::stdout().flush().unwrap();
-    tetris::Canvas::new().show();
+    let mut canvas = tetris::Canvas::new();
+    canvas.new_tail(0, 0);
+    canvas.refresh_line(vec![0, 1, 2, 3]);
     loop {
         // 等待输入q
         match crossterm::event::read().unwrap() {
