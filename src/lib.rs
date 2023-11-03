@@ -1,11 +1,13 @@
-mod tetris;
-
 use std::io;
 use std::io::Write;
+
 use clap::Parser;
-use crossterm::{execute, cursor};
+use crossterm::{cursor, execute};
 use crossterm::style::Color;
 use crossterm::terminal::ClearType;
+
+mod tetris;
+mod tiles;
 
 // cargo run -- -h
 #[derive(Parser, Debug)]
@@ -29,19 +31,33 @@ pub fn run() {
             io::stdout(),
             crossterm::cursor::MoveTo(0, index),
             crossterm::style::SetBackgroundColor(Color::White)
-        ).unwrap();
-        print!("　　　　　　　　　　　　　　　　　　　　");
-        execute!(io::stdout(), crossterm::style::SetBackgroundColor(Color::Black)).unwrap();
+        )
+        .unwrap();
+        print!("　　　　　　　　　　");
+        execute!(
+            io::stdout(),
+            crossterm::style::SetBackgroundColor(Color::Black)
+        )
+        .unwrap();
+        match index {
+            1 => {
+                print!("      Score: 0      ");
+            }
+            2 => {
+                print!("      Level: 1      ");
+            }
+            _ => {
+                print!("　　　　　　　　　　");
+            }
+        }
         print!("|");
         // 打印空字符串
-        io::stdout().flush().unwrap();
     }
-    execute!(
-            io::stdout(),
-            crossterm::cursor::MoveTo(0, 20)
-        ).unwrap();
+    io::stdout().flush().unwrap();
+    execute!(io::stdout(), crossterm::cursor::MoveTo(0, 20)).unwrap();
     print!("————————————————————————————————————————");
     io::stdout().flush().unwrap();
+    tetris::Canvas::new().show();
     loop {
         // 等待输入q
         match crossterm::event::read().unwrap() {
