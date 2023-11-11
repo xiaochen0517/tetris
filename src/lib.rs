@@ -1,13 +1,12 @@
-use std::io;
-use std::io::Write;
+mod tetris;
+mod tiles;
 
 use clap::Parser;
 use crossterm::style::Color;
 use crossterm::terminal::ClearType;
 use crossterm::{cursor, execute};
-
-mod tetris;
-mod tiles;
+use std::io;
+use std::io::Write;
 
 // cargo run -- -h
 #[derive(Parser, Debug)]
@@ -19,6 +18,10 @@ struct Arg {
 }
 
 pub fn run() {
+    // 进入raw模式
+    crossterm::terminal::enable_raw_mode().unwrap();
+    // 进入备用屏幕
+    execute!(io::stdout(), crossterm::terminal::EnterAlternateScreen).unwrap();
     let arg = Arg::parse();
     println!("{:?}", arg);
     // 将从 0:0 开始到 20:20 的区域填充为白色
@@ -33,7 +36,7 @@ pub fn run() {
             crossterm::style::SetBackgroundColor(Color::White)
         )
         .unwrap();
-        print!("　　　　　　　　　　");
+        write!(io::stdout(), "　　　　　　　　　　").unwrap();
         execute!(
             io::stdout(),
             crossterm::style::SetBackgroundColor(Color::Black)
@@ -41,26 +44,35 @@ pub fn run() {
         .unwrap();
         match index {
             1 => {
-                print!("      Score: 0      ");
+                write!(io::stdout(), "      Score: 0      ").unwrap();
             }
             2 => {
-                print!("      Level: 1      ");
+                write!(io::stdout(), "      Level: 1      ").unwrap();
             }
             _ => {
-                print!("　　　　　　　　　　");
+                write!(io::stdout(), "　　　　　　　　　　").unwrap();
             }
         }
-        print!("|");
+        write!(io::stdout(), "|").unwrap();
         // 打印空字符串
     }
     io::stdout().flush().unwrap();
     execute!(io::stdout(), crossterm::cursor::MoveTo(0, 20)).unwrap();
-    print!("————————————————————————————————————————");
+    write!(io::stdout(), "————————————————————————————————————————").unwrap();
+    execute!(io::stdout(), crossterm::cursor::MoveTo(0, 21)).unwrap();
+    write!(io::stdout(), "Press Q to exit.").unwrap();
     io::stdout().flush().unwrap();
     let mut canvas = tetris::Canvas::new();
     canvas.new_tail(0, 0);
-    canvas.refresh_line(vec![0, 1, 2, 3]);
+    canvas.tile_position.1 = 0;
+    canvas.draw_tail(tetris::Direction::Down);
+    // game loop
     loop {
+        // 等待 16ms
+        std::thread::sleep(std::time::Duration::from_millis(1000));
+        // 向下移动tail
+        canvas.tile_position.1 += 1;
+        canvas.draw_tail(tetris::Direction::Down);
         // 等待输入q
         match crossterm::event::read().unwrap() {
             crossterm::event::Event::Key(key) => {
@@ -73,4 +85,8 @@ pub fn run() {
     }
     // 显示光标
     execute!(io::stdout(), cursor::Show).unwrap();
+    // 退出备用屏幕
+    execute!(io::stdout(), crossterm::terminal::LeaveAlternateScreen).unwrap();
+    // 退出raw模式
+    crossterm::terminal::disable_raw_mode().unwrap();
 }
